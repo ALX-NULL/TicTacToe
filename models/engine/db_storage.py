@@ -3,10 +3,9 @@
 Contains the class DBStorage
 """
 
-import models
+from sqlalchemy.orm import scoped_session, sessionmaker
 from models.game import Game
 from models.user import User
-from os import getenv
 from sqlalchemy import create_engine
 
 classes = {
@@ -49,11 +48,11 @@ class DBStorage:
             self.__session.delete(obj)
 
     def reload(self):
-        from models.base_model import db
+        from models.base_model import Base
         """reloads data from the database"""
-        db.metadata.create_all(self.__engine)
-        sess_factory = db.sessionmaker(bind=self.__engine, expire_on_commit=False)
-        Session = db.scoped_session(sess_factory)
+        Base.metadata.create_all(self.__engine)
+        sess_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
+        Session = scoped_session(sess_factory)
         self.__session = Session
 
     def close(self):
@@ -64,11 +63,8 @@ class DBStorage:
         """ get the object based on the class and its ID, or None"""
         if cls is None or id is None:
             return None
-        objects = self.all()
-        key = "{}.{}".format(cls.__name__, id)
-        if key in objects.keys():
-            return objects[key]
-        return None
+        cls = classes[cls]
+        return self.__session.query(cls).filter(cls.id == id).first()
 
     def count(self, cls=None):
         """the number of objects in storage matching the given class.
