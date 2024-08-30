@@ -1,22 +1,20 @@
 """Handling Socket.io events by the server"""
-
 import socketio
 
-sio = socketio.Server()
-
-app = socketio.WSGIApp(sio)
+sio = socketio.Server(namespaces=['socket.io'])
 
 
-@sio.event
 def connect(sid, environ):
-    print("connect ", sid)
+    print(f'Client connected: {sid}')
+    sio.send(sid, 'Welcome to the Socket.IO server!')
 
-
+# Define a message event handler
 @sio.event
-def my_message(sid, data):
-    print("message ", data)
+def message(sid, data):
+    print(f'Message from {sid}: {data}')
+    sio.send(sid, f'Received your message: {data}')
 
-
+# Define a disconnection event handler
 @sio.event
 def disconnect(sid):
-    print("disconnect ", sid)
+    print(f'Client disconnected: {sid}')

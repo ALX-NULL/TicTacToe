@@ -58,8 +58,6 @@ def register_post():
         return render_template('register.html',
                                error='Password must be at least 8 characters')
 
-    if service.check_username(username):
-        return render_template('register.html', error='User already exists')
     password = hashlib.md5(password.encode()).hexdigest()
     user = service.create_user(name, username, password)
     session['user'] = user.id
