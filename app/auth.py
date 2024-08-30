@@ -1,33 +1,23 @@
 #!/usr/bin/env python3
 
-import os
 import hashlib
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session
-import service
-from user import User
-
-secret_key = os.getenv('SECRET_KEY')
-app = Flask(__name__)
-app.secret_key = secret_key
-app.strict_slashes = False
+from flask import Blueprint, render_template, request, redirect, url_for, session
+import app.service as service
 
 
-@app.teardown_appcontext
-def close_session(exception):
-    """ close session """
-    storage.close()
+bp = Blueprint("auth", __name__)
 
 
-@app.route('/login', methods=['GET'])
+@bp.route('/login', methods=['GET'])
 def login():
     """ login page """
     if 'user' in session:
-        return redirect(url_for('/'))
+        return redirect('/')
 
     return render_template('login.html')
 
 
-@app.route('/login', methods=['POST'])
+@bp.route('/login', methods=['POST'])
 def login_post():
     """ login post """
     username = request.form['username']
@@ -36,28 +26,28 @@ def login_post():
     user = service.get_user_by_username(username, password)
     if user:
         session['user'] = user.id
-        return redirect(url_for('/'))
+        return redirect('/')
     # if wrong credentials
     # return to login page with error message
     return render_template('login.html', error='Invalid username or password')
 
 
-@app.route('/logout')
+@bp.route('/logout')
 def logout():
     """ logout """
     session.pop('user', None)
-    return redirect(url_for('index'))
+    return redirect('/')
 
 
-@app.route('/register', methods=['GET'])
+@bp.route('/register', methods=['GET'])
 def register():
     """ register page """
     if 'user' in session:
-        return redirect(url_for('dashboard'))
+        return redirect('/')
     return render_template('register.html')
 
 
-@app.route('/register', methods=['POST'])
+@bp.route('/register', methods=['POST'])
 def register_post():
     """ register post """
     username = request.form['username']
@@ -70,10 +60,8 @@ def register_post():
 
     if service.check_username(username):
         return render_template('register.html', error='User already exists')
-
     password = hashlib.md5(password.encode()).hexdigest()
-    user = User(name=name, username=username, password=password)
-    user.save()
+    user = service.create_user(name, username, password)
     session['user'] = user.id
     # message success on sign up and redirect to dashboard
     return render_template('register.html',
