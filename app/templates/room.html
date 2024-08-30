@@ -1,7 +1,11 @@
 {% extends "layout.html" %}
 {% block headers %}
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-    <script src="/static/scripts/sockets.js"></script>
+    <script>
+        const roomId = "{{ room_id }}";
+        const socket = io(`/?room=${roomId}`);
+    </script>
+    
 {% endblock %}
 {% block content %}
 
@@ -15,45 +19,6 @@
   <div id="{{ n }}" class="grid content-center aspect-square border-2 border-orange-500"></div>
   {% endfor %}
 </div>
+<script src="/static/scripts/sockets.js"></script>
 </main>
-
-
-<script>
-
-let char = 'X';
-const box = document.getElementById("box");
-const board = Array(9).fill(null);
-
-box.onclick = (e) => {
-  if (e.target.innerText) return;
-  board[e.target.id] = e.target.innerText = char;
-  char = char === 'X'? 'O': 'X';
-  const winner = calculateWinner(board);
-  if (winner) box.innerHTML = `<div>gg</div><div>Winner is ${winner}</div><div>ez</div>`;
-  else if (board.find((v) => v == null) === undefined) box.innerHTML = "DRAW";
- }
-
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-
-</script>
-
-
 {% endblock %}

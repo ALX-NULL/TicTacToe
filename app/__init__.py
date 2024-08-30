@@ -50,4 +50,4 @@ def room(room_id):
     if room_id == "new":
         return redirect(f"/rooms/{secrets.token_hex(3)}")
 
-    return render_template("room.html")
+    return render_template("room.html", room_id=room_id)
